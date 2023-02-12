@@ -1,4 +1,4 @@
-app = "gpt-bot-hub-f3a7"
+app = "gpt-bot-hub"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
