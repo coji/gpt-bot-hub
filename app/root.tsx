@@ -1,7 +1,10 @@
-import React, { useContext, useEffect } from 'react'
+import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 import { withEmotionCache } from '@emotion/react'
-import { ChakraProvider } from '@chakra-ui/react'
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
   Links,
@@ -11,20 +14,27 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react'
-import { ServerStyleContext, ClientStyleContext } from './context'
-
-import { getUser } from './session.server'
+import { useContext, useEffect } from 'react'
+import { ClientStyleContext, ServerStyleContext } from './utils/context'
+import { getUser } from './services/session.server'
 
 export const meta: MetaFunction = () => ({
   charset: 'utf-8',
-  title: 'GPT Bot Hub',
+  title: 'gpt-bot-hub',
   viewport: 'width=device-width,initial-scale=1',
 })
 
-export async function loader({ request }: LoaderArgs) {
-  return json({
-    user: await getUser(request),
-  })
+export const links: LinksFunction = () => {
+  return []
+}
+
+type LoaderData = {
+  user: Awaited<ReturnType<typeof getUser>>
+}
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = await getUser(request)
+  return json<LoaderData>({ user })
 }
 
 interface DocumentProps {
@@ -44,6 +54,7 @@ const Document = withEmotionCache(
       const tags = emotionCache.sheet.tags
       emotionCache.sheet.flush()
       tags.forEach((tag) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(emotionCache.sheet as any)._insertTag(tag)
       })
       // reset cache to reapply global styles
@@ -52,7 +63,7 @@ const Document = withEmotionCache(
     }, [])
 
     return (
-      <html lang="en">
+      <html lang="ja">
         <head>
           <Meta />
           <Links />
@@ -75,10 +86,19 @@ const Document = withEmotionCache(
   },
 )
 
+const colors = {
+  brand: {
+    900: '#1a365d',
+    800: '#153e75',
+    700: '#2a69ac',
+  },
+}
+
+const theme = extendTheme({ colors })
 export default function App() {
   return (
     <Document>
-      <ChakraProvider>
+      <ChakraProvider theme={theme} resetCSS>
         <Outlet />
       </ChakraProvider>
     </Document>

@@ -1,18 +1,17 @@
-// entry.client.tsx
-import React, { useState } from 'react'
-import { hydrateRoot } from 'react-dom/client'
 import { CacheProvider } from '@emotion/react'
 import { RemixBrowser } from '@remix-run/react'
-
-import { ClientStyleContext } from './context'
-import createEmotionCache, { defaultCache } from './createEmotionCache'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
+import { hydrateRoot } from 'react-dom/client'
+import { ClientStyleContext } from './utils/context'
+import createEmotionCache from './utils/createEmotionCache'
 
 interface ClientCacheProviderProps {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 function ClientCacheProvider({ children }: ClientCacheProviderProps) {
-  const [cache, setCache] = useState(defaultCache)
+  const [cache, setCache] = useState(createEmotionCache())
 
   function reset() {
     setCache(createEmotionCache())

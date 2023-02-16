@@ -3,7 +3,7 @@ import { Authenticator } from 'remix-auth'
 import invariant from 'tiny-invariant'
 import { strategy as GoogleStrategy } from './auth/google-auth.server'
 
-invariant(process.env.SESSION_SECRET, 'SESSION_SECRET is required')
+invariant(process.env.SESSION_SECRET, 'SESSION_SECRET must be set')
 
 export interface SessionUser {
   userId: string

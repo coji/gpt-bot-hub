@@ -1,4 +1,3 @@
-// context.tsx
 import { createContext } from 'react'
 
 export interface ServerStyleContextData {
@@ -7,14 +6,10 @@ export interface ServerStyleContextData {
   css: string
 }
 
-export const ServerStyleContext = createContext<
-  ServerStyleContextData[] | null
->(null)
+export const ServerStyleContext = createContext<ServerStyleContextData[] | null>(null)
 
 export interface ClientStyleContextData {
   reset: () => void
 }
 
-export const ClientStyleContext = createContext<ClientStyleContextData | null>(
-  null,
-)
+export const ClientStyleContext = createContext<ClientStyleContextData | null>(null)

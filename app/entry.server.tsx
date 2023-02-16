@@ -1,17 +1,10 @@
-import { renderToString } from 'react-dom/server'
 import { CacheProvider } from '@emotion/react'
 import createEmotionServer from '@emotion/server/create-instance'
-import { PassThrough } from 'stream'
 import type { EntryContext } from '@remix-run/node'
-import { Response } from '@remix-run/node'
 import { RemixServer } from '@remix-run/react'
-import isbot from 'isbot'
-import { renderToPipeableStream } from 'react-dom/server'
-
-import { ServerStyleContext } from './context'
-import createEmotionCache from './createEmotionCache'
-
-const ABORT_DELAY = 5000
+import { renderToString } from 'react-dom/server'
+import { ServerStyleContext } from './utils/context'
+import createEmotionCache from './utils/createEmotionCache'
 
 export default function handleRequest(
   request: Request,
@@ -29,49 +22,19 @@ export default function handleRequest(
       </CacheProvider>
     </ServerStyleContext.Provider>,
   )
-
   const chunks = extractCriticalToChunks(html)
+  const markup = renderToString(
+    <ServerStyleContext.Provider value={chunks.styles}>
+      <CacheProvider value={cache}>
+        <RemixServer context={remixContext} url={request.url} />
+      </CacheProvider>
+    </ServerStyleContext.Provider>,
+  )
 
-  const callbackName = isbot(request.headers.get('user-agent'))
-    ? 'onAllReady'
-    : 'onShellReady'
+  responseHeaders.set('Content-Type', 'text/html')
 
-  return new Promise((resolve, reject) => {
-    let didError = false
-
-    const { pipe, abort } = renderToPipeableStream(
-      <ServerStyleContext.Provider value={chunks.styles}>
-        <CacheProvider value={cache}>
-          <RemixServer context={remixContext} url={request.url} />
-        </CacheProvider>
-      </ServerStyleContext.Provider>,
-
-      {
-        [callbackName]: () => {
-          const body = new PassThrough()
-
-          responseHeaders.set('Content-Type', 'text/html')
-
-          resolve(
-            new Response(body, {
-              headers: responseHeaders,
-              status: didError ? 500 : responseStatusCode,
-            }),
-          )
-
-          pipe(body)
-        },
-        onShellError: (err: unknown) => {
-          reject(err)
-        },
-        onError: (error: unknown) => {
-          didError = true
-
-          console.error(error)
-        },
-      },
-    )
-
-    setTimeout(abort, ABORT_DELAY)
+  return new Response('<!DOCTYPE html>' + markup, {
+    status: responseStatusCode,
+    headers: responseHeaders,
   })
 }
