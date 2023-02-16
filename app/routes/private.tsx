@@ -1,7 +1,21 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Heading, Grid, Box, Button } from '@chakra-ui/react'
+import {
+  Heading,
+  Grid,
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  HStack,
+  VStack,
+  chakra,
+} from '@chakra-ui/react'
+import { useMutation } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
 
 import { auth } from '~/services/auth.server'
 import { getUserById } from '~/models/user.server'
@@ -17,8 +31,46 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ user })
 }
 
+interface TestResponse {
+  text: string
+}
+const useTest = () => {
+  return useMutation(async (form: ChatForm) => {
+    const ret = await fetch('/api/test', {
+      method: 'POST',
+      body: JSON.stringify(form),
+    })
+    if (ret.ok) {
+      return (await ret.json()) as TestResponse
+    }
+  })
+}
+
+interface ChatForm {
+  userInput: string
+  apiKey: string
+  promptInput: string
+}
+
 export default function Private() {
+  const test = useTest()
   const { user } = useLoaderData<typeof loader>()
+  const { register, handleSubmit } = useForm<ChatForm>({
+    defaultValues: {
+      userInput: '',
+      promptInput:
+        'You are Assistant. Help the user as much as possible.\n' +
+        '\n' +
+        '{{memory}}\n' +
+        'User: {{userInput}}\n' +
+        'Assistant:',
+    },
+  })
+
+  const onSubmit = handleSubmit(async (data) => {
+    const ret = await test.mutateAsync(data)
+  })
+
   return (
     <Grid templateRows="auto 1fr auto" h="100dvh" bgColor="gray.100">
       <Heading display="flex" p="4">
@@ -30,9 +82,47 @@ export default function Private() {
         </Form>
       </Heading>
 
-      <Box overflowX="auto" p="4">
+      <Box overflowY="auto" p="4">
         <Box p="4" color="gray.200" bgColor="black" rounded="md">
-          <Box whiteSpace="pre">{JSON.stringify(user, null, 2)}</Box>
+          <HStack alignItems="start">
+            <VStack flexGrow="1" w="full">
+              <chakra.form onSubmit={onSubmit} w="full">
+                <FormControl>
+                  <HStack>
+                    <FormLabel>Input</FormLabel>
+                    <Input
+                      {...register('userInput')}
+                      autoFocus
+                      name="userInput"
+                    ></Input>
+                  </HStack>
+                </FormControl>
+              </chakra.form>
+
+              <Box
+                h="full"
+                borderColor="white"
+                border="1px solid"
+                rounded="md"
+                p="4"
+              >
+                hoge
+              </Box>
+            </VStack>
+
+            <Box w="30rem">
+              <VStack>
+                <FormControl>
+                  <FormLabel>API Key</FormLabel>
+                  <Input {...register('apiKey')} type="password"></Input>
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Prompt</FormLabel>
+                  <Textarea {...register('promptInput')} rows={10}></Textarea>
+                </FormControl>
+              </VStack>
+            </Box>
+          </HStack>
         </Box>
       </Box>
 

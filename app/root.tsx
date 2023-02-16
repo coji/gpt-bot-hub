@@ -17,6 +17,8 @@ import {
 import { useContext, useEffect } from 'react'
 import { ClientStyleContext, ServerStyleContext } from './utils/context'
 import { getUser } from './services/session.server'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 export const meta: MetaFunction = () => ({
   charset: 'utf-8',
@@ -95,12 +97,17 @@ const colors = {
 }
 
 const theme = extendTheme({ colors })
+const queryClient = new QueryClient()
+
 export default function App() {
   return (
     <Document>
-      <ChakraProvider theme={theme} resetCSS>
-        <Outlet />
-      </ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider theme={theme} resetCSS>
+          <Outlet />
+        </ChakraProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
     </Document>
   )
 }
