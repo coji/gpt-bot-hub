@@ -21,6 +21,34 @@ model User {
   notes Note[]
 }
 
+model LineUser {
+  id String @id @default(cuid())
+
+  line_id String @unique
+
+  displayName String
+  picture     String?
+  locale      String  @default("ja")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  LineChatMessage LineChatMessageLog[]
+}
+
+model LineChatMessageLog {
+  id String @id @default(cuid())
+
+  user_message      String
+  assistant_message String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   LineUser @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String
+}
+
 model Note {
   id    String @id @default(cuid())
   title String

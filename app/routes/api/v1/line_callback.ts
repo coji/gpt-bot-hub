@@ -7,7 +7,20 @@ import {
   type TextMessage,
 } from '@line/bot-sdk'
 import invariant from 'tiny-invariant'
-import { Configuration, OpenAIApi } from 'openai'
+import {
+  Configuration,
+  OpenAIApi,
+  type ChatCompletionRequestMessage,
+} from 'openai'
+import {
+  getLineUserByLineId,
+  createLineUser,
+  type LineUser,
+} from '~/models/line_user.server'
+import {
+  getLineChatMessageLog,
+  createLineChatMessageLog,
+} from '~/models/line_chat_message_logs.server'
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,30 +30,55 @@ const openai = new OpenAIApi(configuration)
 const prompt =
   'あなたは臨床心理士です。ユーザからの相談に親切に対応してください。'
 
-const handleMessage = async (client: Client, event: MessageEvent) => {
+const handleMessage = async (
+  client: Client,
+  user: LineUser,
+  event: MessageEvent,
+) => {
   const message = event.message
   if (message.type === 'text') {
+    const logs: ChatCompletionRequestMessage[] = []
+    for (const messageLog of await getLineChatMessageLog(user.id, 30)) {
+      logs.push({
+        role: 'system',
+        content: messageLog.assistant_message,
+      })
+      logs.push({
+        role: 'user',
+        content: messageLog.user_message,
+      })
+    }
+
+    const requestMessages: ChatCompletionRequestMessage[] = [
+      {
+        role: 'system',
+        content: prompt,
+      },
+      ...logs,
+      { role: 'user', content: message.text },
+    ]
     const chatRes = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: prompt,
-        },
-        { role: 'user', content: message.text },
-      ],
+      messages: requestMessages,
     })
 
-    console.log({
-      request: message.text,
-      response: chatRes.data.choices[0],
-    })
-
-    const text =
+    const assistant_message =
       chatRes.data.choices[0].message?.content.trim() || 'No response'
+    console.log({
+      prompts: requestMessages,
+      request: message.text,
+      response: assistant_message,
+    })
+
+    await createLineChatMessageLog({
+      userId: user.id,
+      user_message: message.text,
+      assistant_message: assistant_message,
+    })
+
     const replyMessage: TextMessage = {
       type: 'text',
-      text,
+      text: assistant_message,
     }
     await client.replyMessage(event.replyToken, replyMessage)
   }
@@ -66,8 +104,16 @@ export const action = async ({ request }: ActionArgs) => {
   })
 
   for (const event of webhookRequest.events) {
-    if (event.type === 'message') {
-      await handleMessage(client, event)
+    if (event.source.type === 'user' && event.type === 'message') {
+      const user =
+        (await getLineUserByLineId(event.source.userId)) ??
+        (await createLineUser({
+          line_id: event.source.userId,
+          displayName: 'line user',
+          locale: 'ja',
+          picture: '',
+        }))
+      await handleMessage(client, user, event)
     }
   }
 
