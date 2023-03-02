@@ -7,11 +7,37 @@ import {
   type TextMessage,
 } from '@line/bot-sdk'
 import invariant from 'tiny-invariant'
+import { Configuration, OpenAIApi } from 'openai'
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+const openai = new OpenAIApi(configuration)
+
+const prompt =
+  'あなたは臨床心理士です。ユーザからの相談に親切に対応してください。'
 
 const handleMessage = async (client: Client, event: MessageEvent) => {
   const message = event.message
   if (message.type === 'text') {
-    const text = 'hello ' + message.text
+    const chatRes = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: prompt,
+        },
+        { role: 'user', content: message.text },
+      ],
+    })
+
+    console.log({
+      request: message.text,
+      response: chatRes.data.choices[0],
+    })
+
+    const text =
+      chatRes.data.choices[0].message?.content.trim() || 'No response'
     const replyMessage: TextMessage = {
       type: 'text',
       text,
