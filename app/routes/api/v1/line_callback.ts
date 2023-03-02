@@ -22,6 +22,54 @@ import {
   createLineChatMessageLog,
 } from '~/models/line_chat_message_logs.server'
 
+import fs from 'fs'
+import path from 'path'
+import mimeTypes from 'mime-types'
+
+class LocalFileData {
+  path: string
+  constructor(path: string) {
+    this.path = path
+  }
+
+  public get arrayBuffer() {
+    var buffer = fs.readFileSync(this.path)
+    var arrayBuffer = buffer.subarray(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    )
+    return [arrayBuffer]
+  }
+
+  public get name() {
+    return path.basename(this.path)
+  }
+
+  public get type() {
+    return mimeTypes.lookup(path.extname(this.path)) || undefined
+  }
+}
+
+function constructFileFromLocalFileData(localFileData: LocalFileData) {
+  return new File(localFileData.arrayBuffer, localFileData.name, {
+    type: localFileData.type,
+  })
+}
+
+function storeFileByMsgId(client: Client, id: string, path: string) {
+  return new Promise((resolve, reject) => {
+    client
+      .getMessageContent(id)
+      .then((stream) => {
+        stream
+          .on('error', reject)
+          .on('end', () => resolve(path))
+          .pipe(fs.createWriteStream(path))
+      })
+      .catch(reject)
+  })
+}
+
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 })
@@ -80,7 +128,18 @@ const handleMessage = async (
       type: 'text',
       text: assistant_message,
     }
-    await client.replyMessage(event.replyToken, replyMessage)
+    return replyMessage
+  }
+
+  if (message.type === 'audio') {
+    // オーディオ
+    const filename = './audio.mp3'
+    await storeFileByMsgId(client, message.id, filename)
+    const file = constructFileFromLocalFileData(new LocalFileData(filename))
+
+    const text = await openai.createTranscription(file, 'whisper-1')
+    console.log(text.data)
+    return null
   }
 }
 
@@ -113,7 +172,11 @@ export const action = async ({ request }: ActionArgs) => {
           locale: 'ja',
           picture: '',
         }))
-      await handleMessage(client, user, event)
+
+      const replyMessage = await handleMessage(client, user, event)
+      if (replyMessage) {
+        await client.replyMessage(event.replyToken, replyMessage)
+      }
     }
   }
 

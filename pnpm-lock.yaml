@@ -27,6 +27,7 @@ specifiers:
   '@types/compression': ^1.7.2
   '@types/eslint': ^8.21.1
   '@types/express': ^4.17.17
+  '@types/mime-types': ^2.1.1
   '@types/morgan': ^1.9.4
   '@types/node': ^18.14.2
   '@types/react': ^18.0.28
@@ -48,10 +49,12 @@ specifiers:
   eslint-plugin-cypress: ^2.12.1
   express: ^4.18.2
   framer-motion: ^10.0.1
+  get-file-object-from-local-path: ^1.0.2
   happy-dom: ^8.9.0
   isbot: ^3.6.6
   jwt-decode: ^3.1.2
   langchain: ^0.0.19
+  mime-types: ^2.1.35
   morgan: ^1.10.0
   msw: ^1.1.0
   npm-run-all: ^4.1.5
@@ -95,15 +98,18 @@ dependencies:
   '@remix-run/server-runtime': 1.14.0
   '@tanstack/react-query': 4.24.10_biqbaboplfbrettd7655fr4n2y
   '@tanstack/react-query-devtools': 4.24.12_636dldj5wfr5vkyyqzs5k363kq
+  '@types/mime-types': 2.1.1
   bcryptjs: 2.4.3
   compression: 1.7.4
   cross-env: 7.0.3
   dayjs: 1.11.7
   express: 4.18.2
   framer-motion: 10.0.1_biqbaboplfbrettd7655fr4n2y
+  get-file-object-from-local-path: 1.0.2
   isbot: 3.6.6
   jwt-decode: 3.1.2
   langchain: 0.0.19
+  mime-types: 2.1.35
   morgan: 1.10.0
   openai: 3.2.1
   prom-client: 14.1.1
@@ -4335,6 +4341,10 @@ packages:
     resolution: {integrity: sha512-eC4U9MlIcu2q0KQmXszyn5Akca/0jrQmwDRgpAMJai7qBWq4amIQhZyNau4VYGtCeALvW1/NtjzJJ567aZxfKA==}
     dev: true
 
+  /@types/mime-types/2.1.1:
+    resolution: {integrity: sha512-vXOTGVSLR2jMw440moWTC7H19iUyLtP3Z1YTj7cSsubOICinjMxFeb/V57v9QdyyPGbbWolUFSSmSiRSn94tFw==}
+    dev: false
+
   /@types/mime/3.0.1:
     resolution: {integrity: sha512-Y4XFY5VJAuw0FgAqPNd6NNoV44jbq9Bz2L7Rh/J6jLTiHBSBJa9fxqQIvkIld4GsoDOcCbvzOUAbLPsSKKg+uA==}
     dev: true
@@ -5080,7 +5090,7 @@ packages:
   /axios/0.27.2_debug@4.3.4:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.15.2
+      follow-redirects: 1.15.2_debug@4.3.4
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -7173,6 +7183,19 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
+
+  /follow-redirects/1.15.2_debug@4.3.4:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.4
+    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -7367,6 +7390,12 @@ packages:
     resolution: {integrity: sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==}
     engines: {node: 6.* || 8.* || >= 10.*}
     dev: true
+
+  /get-file-object-from-local-path/1.0.2:
+    resolution: {integrity: sha512-gTOXvcQkzj5kDtLj4ELMYWWbuy+ufMf/c47q4yQ0JsHGaOrtq3lC5koM0hHkeUoSGkezVUb86zAERDpZi9aaXA==}
+    dependencies:
+      mime-types: 2.1.35
+    dev: false
 
   /get-func-name/2.0.0:
     resolution: {integrity: sha512-Hm0ixYtaSZ/V7C8FJrtZIuBBI+iSgL+1Aq82zSu8VQNB4S3Gk8e7Qs3VwBDJAhmRZcFqkl3tQu36g/Foh5I5ig==}
