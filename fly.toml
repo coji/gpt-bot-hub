@@ -4,8 +4,8 @@ kill_timeout = 5
 processes = [ ]
 
 [env]
-PORT = "8000"
-METRICS_PORT = "8081"
+PORT = "3000"
+METRICS_PORT = "3001"
 
 [metrics]
 port = 8_081
@@ -19,7 +19,7 @@ allowed_public_ports = [ ]
 auto_rollback = true
 
 [[services]]
-internal_port = 8_000
+internal_port = 3_000
 processes = [ "app" ]
 protocol = "tcp"
 script_checks = [ ]
