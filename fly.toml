@@ -8,7 +8,7 @@ PORT = "3000"
 METRICS_PORT = "3001"
 
 [metrics]
-port = 8_081
+port = 3_001
 path = "/metrics"
 
 [deploy]
